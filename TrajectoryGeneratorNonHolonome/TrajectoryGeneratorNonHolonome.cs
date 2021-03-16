@@ -8,9 +8,23 @@ using Utilities;
 
 namespace TrajectoryGeneratorNonHolonomeNS
 {
+    public enum TrajectoryState
+    {
+        Idle,
+        Rotation,
+        Avance,
+        Recule,
+    }
+    
     public class TrajectoryGeneratorNonHolonome
     {
+        float Fech = 50f;
+
         int robotId;
+
+        PointD destination = new PointD(3,2);
+        
+       
 
         double samplingFreq;
 
@@ -21,8 +35,21 @@ namespace TrajectoryGeneratorNonHolonomeNS
         double accelLineaire, accelAngulaire;
         double vitesseLineaireMax, vitesseAngulaireMax;
 
+        double accelerationAngulaire = 1;
+        double vitesseAngulaireGhost;
+        
+        double angleGhost;
+        double accelerationLineaire = 1;
+        double vitesseLineaireGhost;
+        
+        double distanceGhost;
+        double xGhost;
+        double yGhost;
+
         AsservissementPID PID_Position_Lineaire;
         AsservissementPID PID_Position_Angulaire;
+
+        TrajectoryState trajectoryState = TrajectoryState.Idle;
 
         public TrajectoryGeneratorNonHolonome(int id)
         {
@@ -65,7 +92,75 @@ namespace TrajectoryGeneratorNonHolonomeNS
 
         void CalculateGhostPosition()
         {
-            //A remplir
+            switch(trajectoryState)
+            {
+                case TrajectoryState.Idle:
+                    break;
+                case TrajectoryState.Rotation:
+                    {
+                        /// On calcule dans un premier temps la distance d'arret du ghost
+                        double angleArretGhost = vitesseAngulaireGhost * vitesseAngulaireGhost / (2 * accelerationAngulaire);
+                        /// Puis on calcule l'angle cible
+                        double angleCible = Math.Atan2(destination.Y - yGhost, destination.X - xGhost);
+                        /// puis on calcule l'angle restant à parcourir,
+                        double angleRestant = angleCible - Toolbox.ModuloByAngle(angleCible, angleGhost);
+                        /// On regarde si on peut accélérer ou si il faut freiner ou rester à vitesse constante
+                        if (angleArretGhost < Math.Abs(angleRestant))
+                        {
+                            if (Math.Abs(vitesseAngulaireGhost) < vitesseAngulaireMax)
+                            {
+                                /// On peut accélérer
+                                if (angleRestant > 0)
+                                    vitesseAngulaireGhost += accelerationAngulaire * 1 / Fech;
+                                else
+                                    vitesseAngulaireGhost -= accelerationAngulaire * 1 / Fech;
+                            }
+                            else
+                            {
+                                ///Rien, on reste à la même vitesse
+                            }
+                        }
+                        else
+                        {
+                            /// On doit freiner
+                            if (angleRestant > 0)
+                                vitesseAngulaireGhost -= accelerationAngulaire * 1 / Fech;
+                            else
+                                vitesseAngulaireGhost += accelerationAngulaire * 1 / Fech;
+                        }
+                    }
+                    break;
+                case TrajectoryState.Avance:
+                    {
+                        ///On calcule dans un premier temps la distance d'arret du ghost
+                        double distanceArretGhost = vitesseLineaireGhost * vitesseLineaireGhost / (2 * accelerationLineaire);
+                        ///Puis on calcule la distance cible
+                        double distanceCible = Math.Sqrt(Math.Pow(destination.Y - yGhost, 2) + Math.Pow(destination.X - xGhost, 2));
+                        ///Puis on calcule la distance restante à parcourir
+                        double distanceRestante = distanceCible - distanceGhost;
+                        /// On regarde si on peut accélérer ou si il faut freiner ou rester à vitesse constante
+                        if (distanceArretGhost < Math.Abs(distanceRestante))
+                        {
+                            if (Math.Abs(vitesseLineaireGhost) < vitesseLineaireMax)
+                            {
+                                /// On peut accélérer
+                                vitesseLineaireGhost += accelerationLineaire * 1 / Fech;
+                            }
+                            else
+                            {
+                                ///Rien, on reste à la même vitesse
+                            }
+                        }
+                        else
+                        {
+                            /// On doit freiner
+                            vitesseLineaireGhost -= accelerationAngulaire * 1 / Fech;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
 
             //On renvoie la position du ghost pour affichage
             OnGhostLocation(robotId, ghostLocationRefTerrain);
