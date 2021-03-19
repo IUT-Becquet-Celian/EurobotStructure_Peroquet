@@ -138,6 +138,60 @@ namespace Utilities
             return distance;            
         }
 
+        public static PointD ProjectionPointToSegment(PointD pt, PointD ptSeg1, PointD ptSeg2)
+        {
+            var A = pt.X - ptSeg1.X;
+            var B = pt.Y - ptSeg1.Y;
+            var C = ptSeg2.X - ptSeg1.X;
+            var D = ptSeg2.Y - ptSeg1.Y;
+
+            double dot = A * C + B * D;
+            double len_sq = C * C + D * D;
+            double param = -1;
+            if (len_sq != 0) //in case of 0 length line
+                param = dot / len_sq;
+
+            double xx, yy;
+
+            if (param < 0)
+            {
+                xx = ptSeg1.X;
+                yy = ptSeg1.Y;
+            }
+            else if (param > 1)
+            {
+                xx = ptSeg2.X;
+                yy = ptSeg2.Y;
+            }
+            else
+            {
+                xx = ptSeg1.X + param * C;
+                yy = ptSeg1.Y + param * D;
+            }
+
+            return new PointD(xx, yy);
+        }
+
+        public static PointD ProjectionPointToLine(PointD pt, PointD ptLine1, PointD ptLine2)
+        {
+            var A = pt.X - ptLine1.X;
+            var B = pt.Y - ptLine1.Y;
+            var C = ptLine2.X - ptLine1.X;
+            var D = ptLine2.Y - ptLine1.Y;
+
+            double dot = A * C + B * D;
+            double len_sq = C * C + D * D;
+            double param = -1;
+            if (len_sq != 0) //in case of 0 length line
+                param = dot / len_sq;
+
+            double xx, yy;
+            xx = ptLine1.X + param * C;
+            yy = ptLine1.Y + param * D;
+
+            return new PointD(xx, yy);
+        }
+
         public static PointD GetInterceptionLocation(Location target, Location hunter, double huntingSpeed)
         {
             //D'après Al-Kashi, si d est la distance entre le pt target et le pt chasseur, que les vitesses sont constantes 
