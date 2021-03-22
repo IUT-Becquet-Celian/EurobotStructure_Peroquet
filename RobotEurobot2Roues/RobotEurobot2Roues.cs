@@ -147,6 +147,10 @@ namespace RobotEurobot2Roues
 
 
             /// Envoi des ordres en provenance de l'interface graphique
+            //
+            
+            //interfaceRobot.OnButtonC1ClickedEvent += trajectoryGenerator.setDestination; 
+
             interfaceRobot.OnEnableDisableMotorsFromInterfaceGeneratedEvent += robotMsgGenerator.GenerateMessageEnableDisableMotors;
             interfaceRobot.OnEnableDisableControlManetteFromInterfaceGeneratedEvent += ChangeUseOfXBoxController;
             interfaceRobot.OnSetAsservissementModeFromInterfaceGeneratedEvent += robotMsgGenerator.GenerateMessageSetAsservissementMode;
@@ -157,6 +161,7 @@ namespace RobotEurobot2Roues
             interfaceRobot.OnEnableSpeedPIDEnableDebugInternalFromInterfaceGeneratedEvent += robotMsgGenerator.GenerateMessageSpeedPIDEnableDebugInternal;
             interfaceRobot.OnEnableSpeedPIDEnableDebugErrorCorrectionConsigneFromInterfaceEvent += robotMsgGenerator.GenerateMessageSpeedPIDEnableDebugErrorCorrectionConsigne;
             interfaceRobot.OnEnablePowerMonitoringDataFromInterfaceGeneratedEvent += robotMsgGenerator.GenerateMessageEnablePowerMonitoring;
+            interfaceRobot.OnDestinationFromInterfaceGeneratedEvent += trajectoryGenerator.OnDestinationReceived;
 
             /// Affichage des infos en provenance du décodeur de message
             msgDecoder.OnMessageDecodedEvent += interfaceRobot.DisplayMessageDecoded;

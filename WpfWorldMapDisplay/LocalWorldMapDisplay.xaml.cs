@@ -1037,7 +1037,6 @@ namespace WpfWorldMapDisplay
 
         private void sciChart_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-
             this.sciChartSurface.XAxis.VisibleRange.SetMinMax(-LengthDisplayArea / 2, LengthDisplayArea / 2);
             this.sciChartSurface.YAxis.VisibleRange.SetMinMax(-WidthDisplayArea / 2, WidthDisplayArea / 2);
         }

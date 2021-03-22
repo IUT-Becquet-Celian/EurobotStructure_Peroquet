@@ -624,19 +624,18 @@ namespace RobotInterface
         }
         private void WorldMapDisplay_OnCtrlClickOnHeatMapEvent(object sender, PositionArgs e)
         {
-            //RefBoxMessage msg = new RefBoxMessage();
-            //msg.command = RefBoxCommand.GOTO;
-            //msg.targetTeam = TeamIpAddress;
-            //msg.robotID = (int)TeamId.Team1 + (int)RobotId.Robot1;
-            //msg.posX = e.X;
-            //msg.posY = e.Y;
-            //msg.posTheta = 0;
-            //OnRefereeBoxReceivedCommand(msg);
+            OnDestinationFromInterface(e.RobotId, e.X, e.Y, e.Theta);
         }
         #region OUTPUT EVENT
         //OUTPUT EVENT
-        public delegate void EnableDisableMotorsEventHandler(object sender, BoolEventArgs e);
-        public event EnableDisableMotorsEventHandler OnEnableDisableMotorsFromInterfaceGeneratedEvent;
+
+        public event EventHandler<PositionArgs> OnDestinationFromInterfaceGeneratedEvent;
+        public virtual void OnDestinationFromInterface(int id, double x, double y, double theta)
+        {
+            OnDestinationFromInterfaceGeneratedEvent?.Invoke(this, new PositionArgs { RobotId = id, X = x, Y = y, Theta = theta, Reliability = 1 });
+        }
+
+        public event EventHandler<BoolEventArgs> OnEnableDisableMotorsFromInterfaceGeneratedEvent;
         public virtual void OnEnableDisableMotorsFromInterface(bool val)
         {
             var handler = OnEnableDisableMotorsFromInterfaceGeneratedEvent;
@@ -857,6 +856,17 @@ namespace RobotInterface
         private void worldMapDisplayStrategy_Loaded(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void Button_C1_Click(object sender, RoutedEventArgs e)
+        {
+            OnButtonC1Clicked();
+        }
+
+        public event EventHandler<EventArgs> OnButtonC1ClickedEvent;
+        public virtual void OnButtonC1Clicked()
+        {
+            OnButtonC1ClickedEvent?.Invoke(this, new EventArgs());
         }
 
         //private void CheckBoxEnablePowerMonitoringData_Checked(object sender, RoutedEventArgs e)

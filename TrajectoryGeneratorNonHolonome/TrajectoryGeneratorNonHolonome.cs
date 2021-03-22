@@ -14,6 +14,7 @@ namespace TrajectoryGeneratorNonHolonomeNS
         Rotation,
         Avance,
         Recule,
+        FreinageUrgence,
     }
     
     public class TrajectoryGeneratorNonHolonome
@@ -22,7 +23,7 @@ namespace TrajectoryGeneratorNonHolonomeNS
 
         int robotId;
 
-        PointD destination = new PointD(3,2);
+        PointD destination = new PointD(0,1);
         PointD pointCible = new PointD(0,0);
         
        
@@ -74,6 +75,12 @@ namespace TrajectoryGeneratorNonHolonomeNS
             PIDPositionReset();
         }
 
+        public void SetDestination(double x, double y)
+        {
+            destination = new PointD(x, y);
+            trajectoryState = TrajectoryState.FreinageUrgence;
+        }
+
         public void OnPhysicalPositionReceived(object sender, LocationArgs e)
         {
             if (robotId == e.RobotId)
@@ -92,6 +99,18 @@ namespace TrajectoryGeneratorNonHolonomeNS
             {
                 case TrajectoryState.Idle:
                     
+                    break;
+                case TrajectoryState.FreinageUrgence:
+
+                    if (Math.Abs(vitesseLineaireGhost) > 0.01)
+                    {
+                        vitesseLineaireGhost -= accelerationLineaire * 1 / Fech;
+                    }
+                    else trajectoryState = TrajectoryState.Rotation;
+
+                    ghostLocationRefTerrain.X += vitesseLineaireGhost / Fech * Math.Cos(ghostLocationRefTerrain.Theta);
+                    ghostLocationRefTerrain.Y += vitesseLineaireGhost / Fech * Math.Sin(ghostLocationRefTerrain.Theta);
+
                     break;
                 case TrajectoryState.Rotation:
                     {
@@ -163,7 +182,7 @@ namespace TrajectoryGeneratorNonHolonomeNS
                         else
                         {
                             /// On doit freiner
-                            vitesseLineaireGhost -= accelerationAngulaire * 1 / Fech;
+                            vitesseLineaireGhost -= accelerationLineaire * 1 / Fech;
                         }
 
                         ghostLocationRefTerrain.X += vitesseLineaireGhost / Fech * Math.Cos(ghostLocationRefTerrain.Theta);
@@ -200,6 +219,14 @@ namespace TrajectoryGeneratorNonHolonomeNS
                 PID_Position_Lineaire.ResetPID(0);
                 PID_Position_Angulaire.ResetPID(0);
             }
+        }
+
+        /*************************************** Incoming Events ************************************/
+
+        public void OnDestinationReceived(object sender, PositionArgs e)
+        {
+            SetDestination(e.X, e.Y);
+            //throw new NotImplementedException();
         }
 
         /*************************************** Outgoing Events ************************************/
