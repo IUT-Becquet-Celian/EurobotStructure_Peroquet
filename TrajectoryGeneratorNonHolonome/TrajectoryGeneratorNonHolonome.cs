@@ -12,7 +12,7 @@ namespace TrajectoryGeneratorNonHolonomeNS
     {
         Idle,
         Rotation,
-        Avance,
+        AvanceOuRecule,
         Recule,
         FreinageUrgence,
     }
@@ -25,8 +25,9 @@ namespace TrajectoryGeneratorNonHolonomeNS
 
         PointD destination = new PointD(0,1);
         PointD pointCible = new PointD(0,0);
-        
-       
+
+    
+
 
         double samplingFreq;
 
@@ -81,6 +82,12 @@ namespace TrajectoryGeneratorNonHolonomeNS
             trajectoryState = TrajectoryState.FreinageUrgence;
         }
 
+
+        public void Recule(double distance)
+        {
+
+        }
+
         public void OnPhysicalPositionReceived(object sender, LocationArgs e)
         {
             if (robotId == e.RobotId)
@@ -90,15 +97,13 @@ namespace TrajectoryGeneratorNonHolonomeNS
                 PIDPosition();
             }
         }
-
-       
-
+        
         void CalculateGhostPosition()
         {
             switch(trajectoryState)
             {
                 case TrajectoryState.Idle:
-                    
+                    vitesseLineaireGhost = 0;
                     break;
                 case TrajectoryState.FreinageUrgence:
 
@@ -106,6 +111,7 @@ namespace TrajectoryGeneratorNonHolonomeNS
                     {
                         vitesseLineaireGhost -= accelerationLineaire * 1 / Fech;
                     }
+                    
                     else trajectoryState = TrajectoryState.Rotation;
 
                     ghostLocationRefTerrain.X += vitesseLineaireGhost / Fech * Math.Cos(ghostLocationRefTerrain.Theta);
@@ -120,6 +126,8 @@ namespace TrajectoryGeneratorNonHolonomeNS
                         double angleCible = Math.Atan2(destination.Y - ghostLocationRefTerrain.Y, destination.X - ghostLocationRefTerrain.X);
                         /// puis on calcule l'angle restant à parcourir,
                         double angleRestant = angleCible - Toolbox.ModuloByAngle(angleCible, ghostLocationRefTerrain.Theta);
+
+                       //angleRestant = Toolbox.ModuloPiAngleRadian(angleRestant); pour test de recule
 
                         /// On regarde si on peut accélérer ou si il faut freiner ou rester à vitesse constante
                         if (angleArretGhost < Math.Abs(angleRestant))
@@ -146,16 +154,17 @@ namespace TrajectoryGeneratorNonHolonomeNS
                                 ghostLocationRefTerrain.Vtheta += accelerationAngulaire * 1 / Fech;
                         }
 
+                        /// Intégration de la vitesse pour avoir l'angle theta
                         ghostLocationRefTerrain.Theta += ghostLocationRefTerrain.Vtheta / Fech;
 
-                        ///On regarde si on a atteint l'angle de destination ou pas
+                        /// On regarde si on a atteint l'angle de destination ou pas
                         if (Math.Abs(angleRestant)<Toolbox.DegToRad(0.2))
-                            trajectoryState = TrajectoryState.Avance;
+                            trajectoryState = TrajectoryState.AvanceOuRecule;
 
                     }
                     
                     break;
-                case TrajectoryState.Avance:
+                case TrajectoryState.AvanceOuRecule:
                     {
                         PointD positionGhost = new PointD(ghostLocationRefTerrain.X, ghostLocationRefTerrain.Y);
                         PointD pointDroite = new PointD(ghostLocationRefTerrain.X + Math.Cos(ghostLocationRefTerrain.Theta), ghostLocationRefTerrain.Y + Math.Sin(ghostLocationRefTerrain.Theta));
@@ -165,14 +174,71 @@ namespace TrajectoryGeneratorNonHolonomeNS
                         double distanceArretGhost = vitesseLineaireGhost * vitesseLineaireGhost / (2 * accelerationLineaire);
                         ///Puis on calcule la distance cible
                         double distanceRestante = Math.Sqrt(Math.Pow(pointCible.Y - ghostLocationRefTerrain.Y, 2) + Math.Pow(pointCible.X - ghostLocationRefTerrain.X, 2));
-                       
+                        ///Puis on calcul l'angle entre le robot et le pt Cible
+                        double angleCible = Math.Atan2(destination.Y - ghostLocationRefTerrain.Y, destination.X - ghostLocationRefTerrain.X);
+                        double angleRobotCible = Toolbox.ModuloByAngle(ghostLocationRefTerrain.Theta, angleCible) - ghostLocationRefTerrain.Theta;
+
+                        // ------------- Dépassement -------------
+
+                        bool cibleDevant = true;
+                        if (Math.Abs(angleRobotCible) > Math.PI / 2)
+                            cibleDevant = false;
+
+                        double coeffMajoration = 2;
+
+                        if(cibleDevant)
+                        {
+                            //La vitesse doit impérativement tendre à être positive !
+                            if (vitesseLineaireGhost < 0)
+                            {
+                                //on freine en reculant pour revenir à une vitesse positive
+                                vitesseLineaireGhost += accelerationLineaire * 1 / Fech;
+                            }
+                            else
+                            {
+                                if (distanceRestante > distanceArretGhost * coeffMajoration)
+                                {
+                                    if (Math.Abs(ghostLocationRefTerrain.Vlin) < vitesseLineaireMax)
+                                        vitesseLineaireGhost += accelerationLineaire * 1 / Fech;
+                                    else
+                                        ;//rien du tout, on est à Vmax
+                                }
+                                else
+                                    vitesseLineaireGhost -= accelerationLineaire * 1 / Fech;
+                            }
+                        }
+                        else
+                        {
+                            //La vitesse doit impérativement tendre à être négative
+                            if(vitesseLineaireGhost > 0)
+                            {
+                                //On frein en avancant pour revenir à une vitesse négative
+                                vitesseLineaireGhost -= accelerationLineaire * 1 / Fech;
+                            }
+                            else
+                            {
+                                if (distanceRestante > distanceArretGhost * coeffMajoration)
+                                {
+                                    if (Math.Abs(vitesseLineaireGhost) < vitesseLineaireMax)
+                                        vitesseLineaireGhost -= accelerationLineaire * 1 / Fech;
+                                    else
+                                        ;//rien du tout, on est à Vmax
+                                }
+                                else
+                                    vitesseLineaireGhost += accelerationLineaire * 1 / Fech;
+                            }
+                        }
+                        /*
                         /// On regarde si on peut accélérer ou si il faut freiner ou rester à vitesse constante
                         if (distanceArretGhost < Math.Abs(distanceRestante))
                         {
                             if (Math.Abs(vitesseLineaireGhost) < vitesseLineaireMax)
                             {
                                 /// On peut accélérer
-                                vitesseLineaireGhost += accelerationLineaire * 1 / Fech;
+                                if(Math.Abs(angleRobotCible)< Math.PI/2)
+                                    vitesseLineaireGhost += accelerationLineaire * 1 / Fech;
+                                else
+                                    vitesseLineaireGhost -= accelerationLineaire * 1 / Fech;
                             }
                             else
                             {
@@ -182,15 +248,23 @@ namespace TrajectoryGeneratorNonHolonomeNS
                         else
                         {
                             /// On doit freiner
-                            vitesseLineaireGhost -= accelerationLineaire * 1 / Fech;
+                            if (Math.Abs(angleRobotCible) < Math.PI / 2)
+                                vitesseLineaireGhost -= accelerationLineaire * 1 / Fech;
+                            else
+                                vitesseLineaireGhost += accelerationLineaire * 1 / Fech;
                         }
+                        */
 
                         ghostLocationRefTerrain.X += vitesseLineaireGhost / Fech * Math.Cos(ghostLocationRefTerrain.Theta);
                         ghostLocationRefTerrain.Y += vitesseLineaireGhost / Fech * Math.Sin(ghostLocationRefTerrain.Theta);
 
                         ///On regarde si on a atteint le point
-                        if (distanceRestante < 0.002)
+                        if (distanceRestante < 0.000002)
+                        {
                             trajectoryState = TrajectoryState.Idle;
+                            OnDestinationReached();
+                        }
+                            
                     }
                     break;
                 default:
@@ -249,6 +323,18 @@ namespace TrajectoryGeneratorNonHolonomeNS
             {
                 handler(this, new PolarSpeedArgs { RobotId = id, Vx = vLineaire, Vy = 0, Vtheta = vAngulaire});
             }
+        }
+
+        public event EventHandler<LocationArgs> OnNewLocationReceivedEvent;
+        public virtual void OnNewLocationReceived(int id, Location loc)
+        {
+            OnNewLocationReceivedEvent?.Invoke(this, new LocationArgs { RobotId = id, Location = loc });
+        }
+
+        public event EventHandler<EventArgs> OnDestinationReachedEvent;
+        public virtual void OnDestinationReached()
+        {
+            OnDestinationReachedEvent?.Invoke(this, new EventArgs());
         }
     }
 }

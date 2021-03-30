@@ -99,6 +99,13 @@ namespace StrategyManagerProjetEtudiantNS
             robotCurrentLocation.Vtheta = location.Location.Vtheta;
         }
 
+        public bool destinationReached = false;
+        public void OnDestinationReachedReceived(object sender, EventArgs e)
+        {
+            //Destination Atteinte
+            destinationReached = true;
+        }
+
         private void TimerStrategy_Elapsed(object sender, ElapsedEventArgs e)
         {
             IterateStateMachines();
@@ -112,10 +119,11 @@ namespace StrategyManagerProjetEtudiantNS
 
         /****************************************** Events envoyés ***********************************************/
 
-        public event EventHandler<LocationArgs> OnDestinationEvent;
-        public virtual void OnDestination(int id, Location location)
+        public event EventHandler<PositionArgs> OnDestinationEvent;
+        public virtual void OnDestination(int id, PointD pt)
         {
-            OnDestinationEvent?.Invoke(this, new LocationArgs { RobotId = id, Location = location });
+            destinationReached = false;
+            OnDestinationEvent?.Invoke(this, new PositionArgs { RobotId = id, X = pt.X, Y = pt.Y});
         }
 
         public EventHandler<EventArgs> OnUpdateWorldMapDisplayEvent;

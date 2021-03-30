@@ -34,11 +34,7 @@ namespace Positioning2WheelsNS
         public event EventHandler<LocationArgs> OnCalculatedLocationEvent;
         public virtual void OnCalculatedLocation(int id, Location locationRefTerrain)
         {
-            var handler = OnCalculatedLocationEvent;
-            if (handler != null)
-            {
-                handler(this, new LocationArgs { RobotId = id, Location = locationRefTerrain });
-            }
+            OnCalculatedLocationEvent?.Invoke(this, new LocationArgs { RobotId = id, Location = locationRefTerrain });
         }
     }
 }

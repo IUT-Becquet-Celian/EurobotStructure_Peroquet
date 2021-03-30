@@ -74,29 +74,36 @@ namespace StrategyManagerProjetEtudiantNS
                 {
                     case TaskDemoMoveState.Arret:
                         sw.Restart();
+                        //parent.OnDestination(parent.robotId, new PointD(-1, 1));
+                        state = TaskDemoMoveState.ArretEnCours;
                         break;
                     case TaskDemoMoveState.ArretEnCours:
-                        if (sw.ElapsedMilliseconds > 3000)
+                        //if(parent.destinationReached)
+                        if (sw.ElapsedMilliseconds > 10000)
                         {
                             state = TaskDemoMoveState.Avance;
                         }
                         break;
                     case TaskDemoMoveState.Avance:
                         sw.Restart();
+                        //parent.OnDestination(parent.robotId, new PointD(1, 1));
                         state = TaskDemoMoveState.AvanceEnCours;
                         break;
                     case TaskDemoMoveState.AvanceEnCours:
-                        if (sw.ElapsedMilliseconds>3000)
+                        //if (parent.destinationReached)
+                        if (sw.ElapsedMilliseconds>10000)
                         {
                             state = TaskDemoMoveState.Recule;
                         }                            
                         break;
                     case TaskDemoMoveState.Recule:
                         sw.Restart();
+                        //parent.OnDestination(parent.robotId, new PointD(-1, -1));
                         state = TaskDemoMoveState.ReculeEnCours;
                         break;
                     case TaskDemoMoveState.ReculeEnCours:
-                        if (sw.ElapsedMilliseconds > 2000)
+                        //if (parent.destinationReached)
+                        if (sw.ElapsedMilliseconds > 10000)
                             state = TaskDemoMoveState.Arret;
                         break;
                     default:

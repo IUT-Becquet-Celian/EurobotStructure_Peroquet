@@ -106,6 +106,8 @@ namespace Utilities
         public virtual double Vy { get; set; }
         [Index(5)]
         public virtual double Vtheta { get; set; }
+        [Index(6)]
+        public virtual double Vlin { get; set; }
 
         public Location()
         {

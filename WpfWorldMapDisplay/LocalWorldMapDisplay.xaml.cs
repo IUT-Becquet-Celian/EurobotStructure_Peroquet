@@ -257,7 +257,7 @@ namespace WpfWorldMapDisplay
                         PolygonExtended ghostShape = new PolygonExtended();
                         ghostShape.polygon.Points.Add(new Point(-0.14, -0.14));
                         ghostShape.polygon.Points.Add(new Point(0.14, -0.14));
-                        ghostShape.polygon.Points.Add(new Point(0.14, 0.02));
+                        ghostShape.polygon.Points.Add(new Point(0.20, 0.0));
                         ghostShape.polygon.Points.Add(new Point(0.14, 0.14));
                         ghostShape.polygon.Points.Add(new Point(-0.14, 0.14));
                         ghostShape.polygon.Points.Add(new Point(-0.14, -0.14));
