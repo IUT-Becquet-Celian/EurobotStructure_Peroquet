@@ -184,7 +184,7 @@ namespace TrajectoryGeneratorNonHolonomeNS
                         if (Math.Abs(angleRobotCible) > Math.PI / 2)
                             cibleDevant = false;
 
-                        double coeffMajoration = 2;
+                        double coeffMajoration = 1.5;
 
                         if(cibleDevant)
                         {
@@ -281,10 +281,25 @@ namespace TrajectoryGeneratorNonHolonomeNS
             //A remplir
             double vLineaireRobot=0, vAngulaireRobot=0;
 
+            
+            double erreurTheta = ghostLocationRefTerrain.Theta - currentLocationRefTerrain.Theta; //calcul de l'erreur theta
+            
+            vAngulaireRobot = PID_Position_Angulaire.CalculatePDoutput(erreurTheta, 1 / Fech); //calcul du PD angulaire
+
+            PointD positionRobot = new PointD(currentLocationRefTerrain.X, currentLocationRefTerrain.Y);
+            PointD pointRobot2 = new PointD(currentLocationRefTerrain.X + Math.Cos(currentLocationRefTerrain.Theta), currentLocationRefTerrain.Y + Math.Sin(currentLocationRefTerrain.Theta));
+            PointD positionGhost = new PointD(ghostLocationRefTerrain.X, ghostLocationRefTerrain.Y);
+            ///On détermine la distance entre le projeté du ghost sur l'axe du robot et le robot
+            PointD projectionGhost= Toolbox.ProjectionPointToLine(positionGhost, positionRobot, pointRobot2);
+
+            //double erreurLin = Math.Sqrt(Math.Pow((pointCible.X - currentLocationRefTerrain.X), 2) + Math.Pow((pointCible.Y - currentLocationRefTerrain.Y), 2));
+            double erreurLineaire = Toolbox.Distance(projectionGhost, positionRobot);
+
+            vLineaireRobot = PID_Position_Lineaire.CalculatePDoutput(erreurLineaire, 1 / Fech);
 
             //Si tout c'est bien passé, on envoie les vitesses consigne.
             OnSpeedConsigneToRobot(robotId, (float)vLineaireRobot, (float)vAngulaireRobot);
-        }
+        }            
 
         void PIDPositionReset()
         {

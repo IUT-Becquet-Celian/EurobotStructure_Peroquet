@@ -82,7 +82,7 @@ namespace RobotEurobot2Roues
             strategyManager.OnDestinationEvent += trajectoryGenerator.OnDestinationReceived;
             trajectoryGenerator.OnNewLocationReceivedEvent += trajectoryGenerator.OnPhysicalPositionReceived;
 
-
+            trajectoryGenerator.OnSpeedConsigneEvent += robotMsgGenerator.GenerateMessageSetSpeedConsigneToRobot;
 
             strategyManager.InitStrategy(); //à faire après avoir abonné les events !
 
