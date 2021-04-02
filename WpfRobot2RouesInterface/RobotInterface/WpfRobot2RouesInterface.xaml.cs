@@ -626,6 +626,13 @@ namespace RobotInterface
         {
             OnDestinationFromInterface(e.RobotId, e.X, e.Y, e.Theta);
         }
+
+        public event EventHandler<PositionArgs> OnCtrlClickOnLocalWorldMapEvent;
+        public virtual void OnCtrlClickOnLocalWorldMap(PositionArgs e)
+        {
+            OnCtrlClickOnLocalWorldMapEvent?.Invoke(this, e);
+        }
+
         #region OUTPUT EVENT
         //OUTPUT EVENT
 
