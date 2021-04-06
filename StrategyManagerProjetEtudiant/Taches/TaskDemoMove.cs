@@ -12,14 +12,12 @@ namespace StrategyManagerProjetEtudiantNS
 {
     public enum TaskDemoMoveState
     {
-        GotoPt1,
-        GotoPt1EnCours,
-        GotoPt2,
-        GotoPt2EnCours,
-        GotoPt3,
-        GotoPt3EnCours,
-        GotoPt4,
-        GotoPt4EnCours,
+        Arret,
+        ArretEnCours,
+        Avance,
+        AvanceEnCours,
+        Recule,
+        ReculeEnCours,
     }
 
     public class TaskDemoMove
@@ -48,10 +46,10 @@ namespace StrategyManagerProjetEtudiantNS
 
         StrategyEurobot parent;
         Thread TaskThread;
-        public TaskDemoMoveState state = TaskDemoMoveState.GotoPt1;
+        public TaskDemoMoveState state = TaskDemoMoveState.Arret;
 
         Stopwatch sw = new Stopwatch();
-        
+
         public TaskDemoMove(StrategyEurobot parent)
         {
             this.parent = parent;
@@ -66,7 +64,7 @@ namespace StrategyManagerProjetEtudiantNS
         {
             this.state = state;
         }
-             
+
 
         void TaskThreadProcess()
         {
@@ -74,32 +72,31 @@ namespace StrategyManagerProjetEtudiantNS
             {
                 switch (state)
                 {
-                    case TaskDemoMoveState.GotoPt1:
+                    case TaskDemoMoveState.Arret:
                         sw.Restart();
                         //parent.OnDestination(parent.robotId, new PointD(-1, 1));
                         state = TaskDemoMoveState.ArretEnCours;
                         break;
-                        if (sw.ElapsedMilliseconds > 8000)
                     case TaskDemoMoveState.ArretEnCours:
                         //if(parent.destinationReached)
                         if (sw.ElapsedMilliseconds > 10000)
                         {
-                            state = TaskDemoMoveState.GotoPt2;
+                            state = TaskDemoMoveState.Avance;
                         }
                         break;
-                    case TaskDemoMoveState.GotoPt2:
+                    case TaskDemoMoveState.Avance:
                         sw.Restart();
                         //parent.OnDestination(parent.robotId, new PointD(1, 1));
                         state = TaskDemoMoveState.AvanceEnCours;
                         break;
                     case TaskDemoMoveState.AvanceEnCours:
                         //if (parent.destinationReached)
-                        if (sw.ElapsedMilliseconds>10000)
+                        if (sw.ElapsedMilliseconds > 10000)
                         {
-                            state = TaskDemoMoveState.GotoPt3;
-                        }                            
+                            state = TaskDemoMoveState.Recule;
+                        }
                         break;
-                    case TaskDemoMoveState.GotoPt3:
+                    case TaskDemoMoveState.Recule:
                         sw.Restart();
                         //parent.OnDestination(parent.robotId, new PointD(-1, -1));
                         state = TaskDemoMoveState.ReculeEnCours;
@@ -108,15 +105,6 @@ namespace StrategyManagerProjetEtudiantNS
                         //if (parent.destinationReached)
                         if (sw.ElapsedMilliseconds > 10000)
                             state = TaskDemoMoveState.Arret;
-                        break;
-                    case TaskDemoMoveState.GotoPt4:
-                        sw.Restart();
-                        //Action à effectuer : compléter
-                        state = TaskDemoMoveState.GotoPt4EnCours;
-                        break;
-                    case TaskDemoMoveState.GotoPt4EnCours:
-                        if (sw.ElapsedMilliseconds > 8000)
-                            state = TaskDemoMoveState.GotoPt1;
                         break;
                     default:
                         break;

@@ -148,7 +148,7 @@ namespace RobotEurobot2Roues
 
             /// Envoi des ordres en provenance de l'interface graphique
             
-            interfaceRobot.OnCtrlClickOnLocalWorldMapEvent += trajectoryGenerator.OnWaypointReceived;
+            //interfaceRobot.OnCtrlClickOnLocalWorldMapEvent += trajectoryGenerator.OnWaypointReceived;
 
             interfaceRobot.OnEnableDisableMotorsFromInterfaceGeneratedEvent += robotMsgGenerator.GenerateMessageEnableDisableMotors;
             interfaceRobot.OnEnableDisableControlManetteFromInterfaceGeneratedEvent += ChangeUseOfXBoxController;

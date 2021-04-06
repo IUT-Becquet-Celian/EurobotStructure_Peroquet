@@ -63,8 +63,8 @@ namespace TrajectoryGeneratorNonHolonomeNS
 
         void InitPositionPID()
         {
-            PID_Position_Lineaire = new AsservissementPID(20.0, 10.0, 0, 100, 100, 1);
-            PID_Position_Angulaire = new AsservissementPID(20.0, 10.0, 0, 5 * Math.PI, 5 * Math.PI, Math.PI);
+            PID_Position_Lineaire = new AsservissementPID(20, 0, 0.2, 4, 4, 4);
+            PID_Position_Angulaire = new AsservissementPID(15, 0, 0.5, Math.PI/2, Math.PI / 2, Math.PI / 2);
         }
 
         public void InitRobotPosition(double x, double y, double theta)
@@ -184,7 +184,8 @@ namespace TrajectoryGeneratorNonHolonomeNS
                         if (Math.Abs(angleRobotCible) > Math.PI / 2)
                             cibleDevant = false;
 
-                        double coeffMajoration = 1.5;
+                        double coeffMajoration = 
+                            2;
 
                         if(cibleDevant)
                         {
@@ -259,7 +260,7 @@ namespace TrajectoryGeneratorNonHolonomeNS
                         ghostLocationRefTerrain.Y += vitesseLineaireGhost / Fech * Math.Sin(ghostLocationRefTerrain.Theta);
 
                         ///On regarde si on a atteint le point
-                        if (distanceRestante < 0.000002)
+                        if (distanceRestante < 0.0002)
                         {
                             trajectoryState = TrajectoryState.Idle;
                             OnDestinationReached();
@@ -278,12 +279,11 @@ namespace TrajectoryGeneratorNonHolonomeNS
 
         void PIDPosition()
         {
+            double erreurLineaire = 0;
             //A remplir
             double vLineaireRobot=0, vAngulaireRobot=0;
 
-            
-            double erreurTheta = ghostLocationRefTerrain.Theta - currentLocationRefTerrain.Theta; //calcul de l'erreur theta
-            
+            double erreurTheta = ghostLocationRefTerrain.Theta - Toolbox.ModuloByAngle(ghostLocationRefTerrain.Theta, currentLocationRefTerrain.Theta); //calcul de l'erreur theta
             vAngulaireRobot = PID_Position_Angulaire.CalculatePDoutput(erreurTheta, 1 / Fech); //calcul du PD angulaire
 
             PointD positionRobot = new PointD(currentLocationRefTerrain.X, currentLocationRefTerrain.Y);
@@ -292,12 +292,22 @@ namespace TrajectoryGeneratorNonHolonomeNS
             ///On détermine la distance entre le projeté du ghost sur l'axe du robot et le robot
             PointD projectionGhost= Toolbox.ProjectionPointToLine(positionGhost, positionRobot, pointRobot2);
 
-            //double erreurLin = Math.Sqrt(Math.Pow((pointCible.X - currentLocationRefTerrain.X), 2) + Math.Pow((pointCible.Y - currentLocationRefTerrain.Y), 2));
-            double erreurLineaire = Toolbox.Distance(projectionGhost, positionRobot);
+            double angleDirectionRobot = Math.Atan2(pointRobot2.Y - currentLocationRefTerrain.Y, pointRobot2.X - currentLocationRefTerrain.X);
+            double angleRobotProjeteGhost = Math.Atan2(projectionGhost.Y - currentLocationRefTerrain.Y, projectionGhost.X - currentLocationRefTerrain.X);
+            double anglePolarisant = angleDirectionRobot - Toolbox.ModuloByAngle(angleDirectionRobot, angleRobotProjeteGhost);
+            if (Math.Abs(anglePolarisant) > Math.PI / 2)
+            {
+                //double erreurLin = Math.Sqrt(Math.Pow((pointCible.X - currentLocationRefTerrain.X), 2) + Math.Pow((pointCible.Y - currentLocationRefTerrain.Y), 2));
+                erreurLineaire = -Toolbox.Distance(projectionGhost, positionRobot);
+            }
+            else  erreurLineaire = Toolbox.Distance(projectionGhost, positionRobot);
+
+
+
 
             vLineaireRobot = PID_Position_Lineaire.CalculatePDoutput(erreurLineaire, 1 / Fech);
 
-            //Si tout c'est bien passé, on envoie les vitesses consigne.
+            //Si tout s'est bien passé, on envoie les vitesses consigne.
             OnSpeedConsigneToRobot(robotId, (float)vLineaireRobot, (float)vAngulaireRobot);
         }            
 
